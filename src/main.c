@@ -34,26 +34,31 @@ int main(int arc, char **argv)
         {
             switch (event.type)
             {
-            case SDL_QUIT:
-                goto out;
-                break;
+                case SDL_QUIT:
+                    goto out;
+                    break;
 
-            case SDL_KEYDOWN:
-            {
-                char key = event.key.keysym.sym;
-                int vkey = chip8_keyboard_map(keyboard_map, key);
-                printf("Key is down %x\n", vkey);
-            }
-                break;
+                case SDL_KEYDOWN:
+                {
+                    char key = event.key.keysym.sym;
+                    int vkey = chip8_keyboard_map(keyboard_map, key);
+                    if(vkey != -1)
+                    {
+                        chip8_keyboard_down(&chip8.keyboard, vkey);
+                    }
+                }
+                    break;
 
-            case SDL_KEYUP:
-            {
-                printf("Key is up\n");
-            }
-                break;
-
-            default:
-                break;
+                case SDL_KEYUP:
+                {
+                    char key = event.key.keysym.sym;
+                    int vkey = chip8_keyboard_map(keyboard_map, key);
+                    if(vkey != -1)
+                    {
+                        chip8_keyboard_up(&chip8.keyboard, vkey);
+                    }
+                }
+                    break;
             }
         }
         
