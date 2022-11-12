@@ -1,14 +1,22 @@
 #include <stdio.h>
+#include <stdbool.h>
 #include "SDL2/SDL.h"
 #include "chip8.h"
+#include "chip8keyboard.h"
+
+const char keyboard_map[CHIP8_TOTAL_KEYS] = 
+{
+    SDLK_1, SDLK_2, SDLK_3, SDLK_4,
+    SDLK_q, SDLK_w, SDLK_e, SDLK_r,
+    SDLK_a, SDLK_s, SDLK_d, SDLK_f,
+    SDLK_z, SDLK_x, SDLK_c, SDLK_v     
+};
 
 int main(int arc, char **argv)
 {
     struct chip8 chip8;
-    chip8.registers.SP = 0;
-    chip8_stack_push(&chip8, 0xff);
-    chip8_stack_push(&chip8, 0xaa);
-    printf("%x", chip8_stack_pop(&chip8));
+    chip8_keyboard_down(&chip8.keyboard, 0x0f);
+    printf("%d", chip8_keyboard_is_down(&chip8.keyboard, 0x0f));
 
     SDL_Init(SDL_INIT_EVERYTHING);
     SDL_Window *window = SDL_CreateWindow(
@@ -24,8 +32,28 @@ int main(int arc, char **argv)
         SDL_Event event;
         while (SDL_PollEvent(&event))
         {
-            if(event.type == SDL_QUIT){
+            switch (event.type)
+            {
+            case SDL_QUIT:
                 goto out;
+                break;
+
+            case SDL_KEYDOWN:
+            {
+                char key = event.key.keysym.sym;
+                int vkey = chip8_keyboard_map(keyboard_map, key);
+                printf("Key is down %x\n", vkey);
+            }
+                break;
+
+            case SDL_KEYUP:
+            {
+                printf("Key is up\n");
+            }
+                break;
+
+            default:
+                break;
             }
         }
         
