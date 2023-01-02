@@ -4,18 +4,18 @@
 #include "chip8.h"
 #include "chip8keyboard.h"
 
-const char keyboard_map[CHIP8_TOTAL_KEYS] = 
-{
-    SDLK_1, SDLK_2, SDLK_3, SDLK_4,
-    SDLK_q, SDLK_w, SDLK_e, SDLK_r,
-    SDLK_a, SDLK_s, SDLK_d, SDLK_f,
-    SDLK_z, SDLK_x, SDLK_c, SDLK_v     
-};
+const char keyboard_map[CHIP8_TOTAL_KEYS] =
+    {
+        SDLK_1, SDLK_2, SDLK_3, SDLK_4,
+        SDLK_q, SDLK_w, SDLK_e, SDLK_r,
+        SDLK_a, SDLK_s, SDLK_d, SDLK_f,
+        SDLK_z, SDLK_x, SDLK_c, SDLK_v};
 
 int main(int arc, char **argv)
 {
     struct chip8 chip8;
     chip8_init(&chip8);
+    chip8_screen_set(&chip8.screen, 1, 0);
 
     SDL_Init(SDL_INIT_EVERYTHING);
     SDL_Window *window = SDL_CreateWindow(
@@ -33,43 +33,53 @@ int main(int arc, char **argv)
         {
             switch (event.type)
             {
-                case SDL_QUIT:
-                    goto out;
-                    break;
+            case SDL_QUIT:
+                goto out;
+                break;
 
-                case SDL_KEYDOWN:
+            case SDL_KEYDOWN:
+            {
+                char key = event.key.keysym.sym;
+                int vkey = chip8_keyboard_map(keyboard_map, key);
+                if (vkey != -1)
                 {
-                    char key = event.key.keysym.sym;
-                    int vkey = chip8_keyboard_map(keyboard_map, key);
-                    if(vkey != -1)
-                    {
-                        chip8_keyboard_down(&chip8.keyboard, vkey);
-                    }
+                    chip8_keyboard_down(&chip8.keyboard, vkey);
                 }
-                    break;
+            }
+            break;
 
-                case SDL_KEYUP:
+            case SDL_KEYUP:
+            {
+                char key = event.key.keysym.sym;
+                int vkey = chip8_keyboard_map(keyboard_map, key);
+                if (vkey != -1)
                 {
-                    char key = event.key.keysym.sym;
-                    int vkey = chip8_keyboard_map(keyboard_map, key);
-                    if(vkey != -1)
-                    {
-                        chip8_keyboard_up(&chip8.keyboard, vkey);
-                    }
+                    chip8_keyboard_up(&chip8.keyboard, vkey);
                 }
-                    break;
+            }
+            break;
             }
         }
-        
+
         SDL_SetRenderDrawColor(renderer, 0, 0, 0, 0);
         SDL_RenderClear(renderer);
         SDL_SetRenderDrawColor(renderer, 255, 255, 255, 0);
-        SDL_Rect rectangle;
-        rectangle.x = 0;
-        rectangle.y = 0;
-        rectangle.w = 40;
-        rectangle.h = 40;
-        SDL_RenderFillRect(renderer, &rectangle);
+
+        for (int x = 0; x < CHIP8_WIDTH; x++)
+        {
+            for (int y = 0; y < CHIP8_HEIGHT; y++)
+            {
+                if (chip8_screen_is_set(&chip8.screen, x, y))
+                {
+                    SDL_Rect rectangle;
+                    rectangle.x = x * CHIP8_WINDOW_MULTIPLIER;
+                    rectangle.y = y * CHIP8_WINDOW_MULTIPLIER;
+                    rectangle.w = CHIP8_WINDOW_MULTIPLIER;
+                    rectangle.h = CHIP8_WINDOW_MULTIPLIER;
+                    SDL_RenderFillRect(renderer, &rectangle);
+                }
+            }
+        }
         SDL_RenderPresent(renderer);
     }
 out:
